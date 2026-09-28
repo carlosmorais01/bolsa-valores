@@ -19,6 +19,10 @@ jobs:
     name: Verificação
     needs: guard-tag-on-main
     uses: ./.github/workflows/verify.yml
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
 
   deploy-producao:
     name: Deploy em produção
