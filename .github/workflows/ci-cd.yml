@@ -10,6 +10,10 @@ jobs:
   verify:
     name: Verificação
     uses: ./.github/workflows/verify.yml
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
 
   deploy-homologacao:
     name: Deploy em homologação
