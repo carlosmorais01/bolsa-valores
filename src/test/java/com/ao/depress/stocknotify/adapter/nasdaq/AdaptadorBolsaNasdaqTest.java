@@ -21,7 +21,7 @@ class AdaptadorBolsaNasdaqTest {
         remoto.simularMudancaPreco("AAPL", 150.0, 155.0);
 
         assertThat(cliente.getNotificacoes()).hasSize(1);
-        var evento = cliente.getNotificacoes().get(0).evento();
+        var evento = cliente.getNotificacoes().getFirst().evento();
         assertThat(evento.nomeBolsa()).isEqualTo("NASDAQ:AAPL");
         assertThat(evento.direcao()).isEqualTo(Direcao.ALTA);
         assertThat(evento.novoValor()).isEqualTo(155.0);
@@ -41,6 +41,6 @@ class AdaptadorBolsaNasdaqTest {
 
         assertThat(comum.getNotificacoes()).isEmpty();
         assertThat(premium.getNotificacoes()).hasSize(1);
-        assertThat(premium.getNotificacoes().get(0).evento().direcao()).isEqualTo(Direcao.BAIXA);
+        assertThat(premium.getNotificacoes().getFirst().evento().direcao()).isEqualTo(Direcao.BAIXA);
     }
 }

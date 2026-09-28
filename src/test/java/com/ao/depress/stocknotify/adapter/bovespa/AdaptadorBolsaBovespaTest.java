@@ -21,7 +21,7 @@ class AdaptadorBolsaBovespaTest {
         remoto.simulaVariacao("PETR4", 2.5);
 
         assertThat(cliente.getNotificacoes()).hasSize(1);
-        var evento = cliente.getNotificacoes().get(0).evento();
+        var evento = cliente.getNotificacoes().getFirst().evento();
         assertThat(evento.nomeBolsa()).isEqualTo("BOVESPA:PETR4");
         assertThat(evento.direcao()).isEqualTo(Direcao.ALTA);
     }
@@ -40,6 +40,6 @@ class AdaptadorBolsaBovespaTest {
 
         assertThat(comum.getNotificacoes()).isEmpty();
         assertThat(premium.getNotificacoes()).hasSize(1);
-        assertThat(premium.getNotificacoes().get(0).evento().direcao()).isEqualTo(Direcao.BAIXA);
+        assertThat(premium.getNotificacoes().getFirst().evento().direcao()).isEqualTo(Direcao.BAIXA);
     }
 }
