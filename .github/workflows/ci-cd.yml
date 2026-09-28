@@ -5,14 +5,16 @@ on:
     branches: [homol, main]
   pull_request:
     branches: [homol, main]
+  release:
+    types: [published]
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -29,8 +31,8 @@ jobs:
       security-events: write
       actions: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -50,8 +52,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -64,8 +66,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit-tests
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -87,8 +89,43 @@ jobs:
     name: Deploy em produção
     runs-on: ubuntu-latest
     needs: [static-analysis, integration-tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >
+      github.event_name == 'release' &&
+      github.event.action == 'published' &&
+      github.event.release.target_commitish == 'main'
     environment: producao
     steps:
       - name: Disparar deploy no Render
         run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+  release-artifacts:
+    name: Artefatos da release (SBOM + JAR)
+    runs-on: ubuntu-latest
+    needs: [static-analysis, integration-tests]
+    if: >
+      github.event_name == 'release' &&
+      github.event.action == 'published' &&
+      github.event.release.target_commitish == 'main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Empacotar aplicação
+        run: mvn -B package -DskipTests
+
+      - name: Gerar SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          artifact-name: sbom.cyclonedx.json
+
+      - name: Anexar JAR à release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: target/*.jar
